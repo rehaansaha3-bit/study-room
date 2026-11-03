@@ -6,7 +6,7 @@
 |---|---|---|---|---|
 | [number] | Toshimah | Harsita | Rehaan | Study Room Slot Booking |
 
-Every 3 hours: update this file, then commit and push it with the message `Check-in Day 1 12:00` (your day and time). Your instructor reads this page on GitHub.
+
 
 ## 1. Who is doing what
 
@@ -66,9 +66,6 @@ Turn on the virtual environment:
 ```bash
 # Windows
 venv\Scripts\activate
-
-# Mac or Linux
-source venv/bin/activate
 ```
 
 Install the packages and start the API:
