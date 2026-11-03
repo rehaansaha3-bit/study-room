@@ -30,15 +30,15 @@ Status: ✅ done · 🟡 in progress · ⬜ not started
 
 | # | Method + path | Built | Rules checked in /docs | Connected to React | Who |
 |---|---|---|---|---|---|
-| E1 |  | ⬜ | ⬜ | ⬜ | Harsita |
-| E2 |  | ⬜ | ⬜ | ⬜ | Harsita |
-| E3 |  | ⬜ | ⬜ | ⬜ | Harsita |
+| E1 |  | ✅ | ✅ | ⬜ | Harsita |
+| E2 |  | ✅ | ✅ | ⬜ | Harsita |
+| E3 |  | ✅ | ✅ | ⬜ | Harsita |
 | E4 |  | ⬜ | ⬜ | ⬜ | Rehaan |
 | E5 |  | ⬜ | ⬜ | ⬜ | Rehaan |
 | E6 |  | ⬜ | ⬜ | ⬜ | Rehaan |
-| E7 |  | ⬜ | ⬜ | ⬜ | Toshimah |
-| E8 |  | ⬜ | ⬜ | ⬜ | Toshimah |
-| E9 |  | ⬜ | ⬜ | ⬜ | Toshimah |
+| E7 |  | ✅ | ⬜ | ⬜ | Toshimah |
+| E8 |  | ✅ | ⬜ | ⬜ | Toshimah |
+| E9 |  | ✅ | ⬜ | ⬜ | Toshimah |
 
 ## 3. Frontend tracker
 
