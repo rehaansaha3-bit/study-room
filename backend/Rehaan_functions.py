@@ -2,7 +2,7 @@ from contextlib import closing
 
 from sqlalchemy import Integer, String, Column, create_engine,ForeignKey, DateTime
 from sqlalchemy.orm import Session, declarative_base;
-from datetime import datetime;
+from datetime import date;
 from fastapi import HTTPException;
 import Harsita_functions 
 
@@ -10,6 +10,7 @@ DB_PATH = "study_room.db"
 
 engine = create_engine(f"sqlite:///{DB_PATH}")
 Base = declarative_base()
+
 
 
 class rooms(Base):
@@ -31,11 +32,11 @@ class bookings(Base):
     id = Column(Integer,primary_key = True)
     room_id = Column(Integer, ForeignKey("rooms.id"))
     roll_no = Column(Integer)
-    booking_date = Column(DateTime, default=datetime.now)
+    booking_date = Column(DateTime )
     start_hour = Column(Integer)
     group_size = Column(Integer)
     status = Column(String)
-    booked_on = Column(DateTime, default=datetime.now)
+    booked_on = Column(DateTime, default= date.today())
 
 
 Base.metadata.create_all(engine)
@@ -51,7 +52,7 @@ def open_close_room(room_id, is_open):
     if not is_open:
         future_bookings = session.query(bookings).filter(
             bookings.room_id == room_id,
-            # bookings.booking_date >= datetime.now(),
+            bookings.booking_date >=  bookings.booking_date.strftime("%Y-%m-%d %H:%M:%S"),
             bookings.status != "cancelled"
         ).all()
 
@@ -71,7 +72,7 @@ def get_free_hours(room_id, booking_date):
 
     booking = session.query(bookings).filter(
         bookings.room_id == room_id,
-        bookings.booking_date == booking_date,
+        bookings.booking_date == booking_date.strftime("%Y-%m-%d %H:%M:%S"),
         bookings.status != "cancelled"
     ).all()
 
@@ -90,10 +91,10 @@ def get_free_hours(room_id, booking_date):
     return free_hours
 
 # E6:
-def book_room(room_id, booking_date, start_hour, roll_no, group_size):
+def book_room(room_id: int, booking_date: date, start_hour: int, roll_no: str, group_size: int):
     session = Session(engine)
-    room = session.get(rooms, room_id)
 
+    room = session.get(rooms, room_id)
     if not room:
         session.close()
         raise HTTPException(status_code=404, detail="Room not found")
@@ -102,25 +103,33 @@ def book_room(room_id, booking_date, start_hour, roll_no, group_size):
         session.close()
         raise HTTPException(status_code=400, detail="Room is closed for booking")
     
-    if start_hour < 8 or start_hour > 19:
-        session.close()
-        raise HTTPException(status_code=400, detail="Start hour must be between 8 and 19")
-    
-    
     if group_size > room.capacity:
         session.close()
         raise HTTPException(status_code=400, detail="Group size exceeds room capacity")
 
+    existing_booking = session.query(bookings).filter(
+        bookings.room_id == room_id,
+        bookings.booking_date == booking_date,
+        bookings.start_hour == start_hour,
+        bookings.status != "cancelled"
+    ).first()
     
+    if existing_booking:
+        session.close()
+        raise HTTPException(status_code=400, detail="Room is already booked for this hour")
+
     new_booking = bookings(
         room_id=room_id,
-        booking_date=booking_date,
+        booking_date=booking_date,      
         start_hour=start_hour,
-        roll_no=roll_no,
+        roll_no=int(roll_no),
         group_size=group_size,
-        status="booked"
+        status="booked",
+        booked_on=date.today()         
     )
 
     session.add(new_booking)
     session.commit()
     session.close()
+    
+    return {"message": "Room booked successfully"}

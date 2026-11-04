@@ -53,7 +53,7 @@ def student_bookings(roll_no):
     student_booking_records = session.query(bookings).filter(
         bookings.roll_no == roll_no,
         bookings.status != "cancelled",
-        # bookings.booking_date >= datetime.now()
+        bookings.booking_date >= datetime.now()
     ).all()
 
     if not student_booking_records:
