@@ -78,7 +78,7 @@ function ManageRooms({ rooms, message, addRoom, changeRoomStatus }) {
                 <RoomItem
                     key={room.room_id}
                     room={room}
-                    toggleRoom={toggleRoom}
+                    changeRoomStatus={changeRoomStatus}
                 />
             ))}
         </>
@@ -86,6 +86,3 @@ function ManageRooms({ rooms, message, addRoom, changeRoomStatus }) {
 }
 
 export default ManageRooms;
-
-
-
