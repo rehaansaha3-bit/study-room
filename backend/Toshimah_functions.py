@@ -18,9 +18,7 @@ class rooms(Base):
     capacity = Column(Integer)
     has_projector = Column(Integer, default=0)
     is_open = Column(Integer, default=1)
-    
-    
-   
+
 
 class bookings(Base):
     __tablename__="bookings"
@@ -43,7 +41,6 @@ Base.metadata.create_all(engine)
 def student_bookings(roll_no):
     session = Session(engine)
     
-    
     if not roll_no.isdigit():
         session.close()
         raise HTTPException(status_code=400, detail="Roll number must be a number")
@@ -62,7 +59,7 @@ def student_bookings(roll_no):
         response.append({
             "booking_id": booking.id,
             "room_name": room.name if room else None,
-            "booking_date": booking.booking_date.date().isoformat(),
+            "booking_date": booking.booking_date.date(),
             "start_hour": booking.start_hour,
             "group_size": booking.group_size
         })
