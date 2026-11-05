@@ -2,7 +2,7 @@ from contextlib import closing
 
 from sqlalchemy import Integer, String, Column, create_engine,ForeignKey, DateTime
 from sqlalchemy.orm import Session, declarative_base;
-from datetime import date;
+from datetime import date, datetime;
 from fastapi import HTTPException;
 import Harsita_functions 
 
@@ -10,7 +10,6 @@ DB_PATH = "study_room.db"
 
 engine = create_engine(f"sqlite:///{DB_PATH}")
 Base = declarative_base()
-
 
 
 class rooms(Base):
@@ -22,9 +21,7 @@ class rooms(Base):
     capacity = Column(Integer)
     has_projector = Column(Integer, default=0)
     is_open = Column(Integer, default=1)
-    
-    
-   
+
 
 class bookings(Base):
     __tablename__="bookings"
@@ -48,11 +45,15 @@ def open_close_room(room_id, is_open):
     session = Session(engine)
     room = session.get(rooms, room_id)
 
+    if not room:
+        session.close()
+        raise HTTPException(status_code=404, detail="Room not found")
+
     # closing a room that has future bookings should not be allowed.
     if not is_open:
         future_bookings = session.query(bookings).filter(
             bookings.room_id == room_id,
-            bookings.booking_date >=  bookings.booking_date.strftime("%Y-%m-%d %H:%M:%S"),
+            bookings.booking_date >= datetime.now().date(),
             bookings.status != "cancelled"
         ).all()
 
@@ -60,19 +61,22 @@ def open_close_room(room_id, is_open):
             session.close()
             raise HTTPException(status_code=400, detail="Cannot close room with future bookings")
     
-    if room:
-        room.is_open = is_open
-        session.commit()
-
+    room.is_open = is_open
+    session.commit()
     session.close()
 
 # E5:
 def get_free_hours(room_id, booking_date):
     session = Session(engine)
 
+    room = session.get(rooms, room_id)
+    if not room:
+        session.close()
+        raise HTTPException(status_code=404, detail="Room not found")
+
     booking = session.query(bookings).filter(
         bookings.room_id == room_id,
-        bookings.booking_date == booking_date.strftime("%Y-%m-%d %H:%M:%S"),
+        bookings.booking_date == booking_date,
         bookings.status != "cancelled"
     ).all()
 
@@ -117,6 +121,16 @@ def book_room(room_id: int, booking_date: date, start_hour: int, roll_no: str, g
     if existing_booking:
         session.close()
         raise HTTPException(status_code=400, detail="Room is already booked for this hour")
+
+    student_bookings = session.query(bookings).filter(
+        bookings.roll_no == int(roll_no),
+        bookings.booking_date == booking_date,
+        bookings.status != "cancelled"
+    ).count()
+
+    if student_bookings >= 2:
+        session.close()
+        raise HTTPException(status_code=400, detail="You already have 2 bookings on this date")
 
     new_booking = bookings(
         room_id=room_id,

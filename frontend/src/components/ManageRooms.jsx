@@ -1,88 +1,113 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
-function RoomItem({ room, changeRoomStatus }) {
-    return (
-        <div>
-            <hr />
-
-            <h3>{room.name}</h3>
-            <p>Building: {room.building}</p>
-            <p>Capacity: {room.capacity}</p>
-            <p>Projector: {room.has_projector == 1 ? "Yes" : "No"}</p>
-            <p>Status: {room.is_open == 1 ? "Open" : "Closed"}</p>
-
-            <button onClick={() => changeRoomStatus(room)}>
-                {room.is_open == 1 ? "Close Room" : "Open Room"}
-            </button>
-        </div>
-    );
+function getErrorMessage(data) {
+  if (typeof data.detail === "string") {
+    return data.detail;
+  }
+  return "Please check what you typed.";
 }
 
+function ManageRooms({ apiUrl, refresh, onChange }) {
+  const [rooms, setRooms] = useState([]);
+  const [name, setName] = useState("");
+  const [building, setBuilding] = useState("");
+  const [capacity, setCapacity] = useState("");
+  const [projector, setProjector] = useState("0");
+  const [message, setMessage] = useState("");
 
-function ManageRooms({ rooms, message, addRoom, changeRoomStatus }) {
+  // E1: load all rooms
+  useEffect(() => {
+    fetch(apiUrl + "/rooms")
+      .then((response) => response.json())
+      .then((data) => {
+        if (!data.detail) {
+          setRooms(data);
+        }
+      });
+  }, [refresh]);
 
-    const [name, setName] = useState("");
-    const [building, setBuilding] = useState("");
-    const [capacity, setCapacity] = useState("");
-    const [projector, setProjector] = useState("0");
+  // E3: add a new room
+  function handleAdd() {
+    setMessage("");
 
-    return (
-        <>
-            <h1>Manage Rooms</h1>
+    let url = apiUrl + "/rooms";
+    url = url + "?name=" + encodeURIComponent(name);
+    url = url + "&building=" + encodeURIComponent(building);
+    url = url + "&capacity=" + capacity;
+    url = url + "&has_projector=" + projector;
 
-            <h2>Add a Room</h2>
+    fetch(url, { method: "POST" })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.detail) {
+          setMessage(getErrorMessage(data));
+        } else {
+          setMessage("Room added!");
+          setName("");
+          setBuilding("");
+          setCapacity("");
+          setProjector("0");
+          onChange();
+        }
+      });
+  }
 
-            <input
-                placeholder="Room name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-            />
+  // E4: open or close a room
+  function handleStatus(room) {
+    setMessage("");
+    const newStatus = room.is_open ? 0 : 1;
 
-            <input
-                placeholder="Building"
-                value={building}
-                onChange={(e) => setBuilding(e.target.value)}
-            />
+    fetch(apiUrl + "/rooms/" + room.room_id + "?is_open=" + newStatus, { method: "PATCH" })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.detail) {
+          setMessage(getErrorMessage(data));
+        } else {
+          onChange();
+        }
+      });
+  }
 
-            <input
-                type="number"
-                placeholder="Capacity"
-                value={capacity}
-                onChange={(e) => setCapacity(e.target.value)}
-            />
+  return (
+    <section>
+      <h2>Manage Rooms</h2>
 
-            <select
-                value={projector}
-                onChange={(e) => setProjector(e.target.value)}
-            >
-                <option value="0">No Projector</option>
-                <option value="1">Has Projector</option>
-            </select>
+      <input
+        placeholder="Room name"
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+      />
+      <input
+        placeholder="Building"
+        value={building}
+        onChange={(e) => setBuilding(e.target.value)}
+      />
+      <input
+        type="number"
+        placeholder="Capacity"
+        value={capacity}
+        onChange={(e) => setCapacity(e.target.value)}
+      />
+      <select value={projector} onChange={(e) => setProjector(e.target.value)}>
+        <option value="0">No projector</option>
+        <option value="1">Has projector</option>
+      </select>
+      <button onClick={handleAdd}>Add Room</button>
 
-            <button onClick={() => {
-                addRoom(name, building, capacity, Number(projector));
+      {message !== "" && <p>{message}</p>}
 
-                setName("");
-                setBuilding("");
-                setCapacity("");
-                setProjector("0");
-            }}>
-                Add Room
+      <ul>
+        {rooms.map((room) => (
+          <li key={room.room_id}>
+            {room.name} - {room.is_open ? "Open" : "Closed"}
+            <button onClick={() => handleStatus(room)}>
+              {room.is_open ? "Close" : "Open"}
             </button>
-
-            <p>{message}</p>
-
-            <h2>All Rooms</h2>
-
-            {rooms.map((room) => (
-                <RoomItem
-                    key={room.room_id}
-                    room={room}
-                    changeRoomStatus={changeRoomStatus}
-                />
-            ))}
-        </>
-    );
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
 }
 
 export default ManageRooms;

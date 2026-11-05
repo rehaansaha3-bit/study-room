@@ -2,9 +2,9 @@
 
 # Team · Study Room Slot Booking
 
-| Team | Partner 1 | Partner 2 | Partner 3 | Project |
-|---|---|---|---|---|
-| [number] | Toshimah | Harsita | Rehaan | Study Room Slot Booking |
+| Partner 1 | Partner 2 | Partner 3 | Project |
+|---|---|---|---|
+| Toshimah | Harsita | Rehaan | Study Room Slot Booking |
 
 
 
@@ -30,15 +30,15 @@ Status: ✅ done · 🟡 in progress · ⬜ not started
 
 | # | Method + path | Built | Rules checked in /docs | Connected to React | Who |
 |---|---|---|---|---|---|
-| E1 |  | ⬜ | ⬜ | ⬜ | Harsita |
-| E2 |  | ⬜ | ⬜ | ⬜ | Harsita |
-| E3 |  | ⬜ | ⬜ | ⬜ | Harsita |
+| E1 |  | ✅ | ✅ | ⬜ | Harsita |
+| E2 |  | ✅ | ✅ | ⬜ | Harsita |
+| E3 |  | ✅ | ✅ | ⬜ | Harsita |
 | E4 |  | ⬜ | ⬜ | ⬜ | Rehaan |
 | E5 |  | ⬜ | ⬜ | ⬜ | Rehaan |
 | E6 |  | ⬜ | ⬜ | ⬜ | Rehaan |
-| E7 |  | ⬜ | ⬜ | ⬜ | Toshimah |
-| E8 |  | ⬜ | ⬜ | ⬜ | Toshimah |
-| E9 |  | ⬜ | ⬜ | ⬜ | Toshimah |
+| E7 |  | ✅ | ⬜ | ⬜ | Toshimah |
+| E8 |  | ✅ | ⬜ | ⬜ | Toshimah |
+| E9 |  | ✅ | ⬜ | ⬜ | Toshimah |
 
 ## 3. Frontend tracker
 
@@ -48,47 +48,4 @@ Status: ✅ done · 🟡 in progress · ⬜ not started
 | My bookings | ⬜ | ⬜ | ⬜ | |
 | Manage rooms | ⬜ | ⬜ | ⬜ | |
 
-## 4. Blockers and help needed
 
-None yet.
-
-## 5. How to run our app
-
-**Backend**
-
-```bash
-cd backend
-python -m venv venv
-```
-
-Turn on the virtual environment:
-
-```bash
-# Windows
-venv\Scripts\activate
-```
-
-Install the packages and start the API:
-
-```bash
-pip install -r requirements.txt
-uvicorn main:app --reload --port 8001
-```
-
-Open <http://127.0.0.1:8001/docs> to test it.
-
-To reset the data, stop the server, delete `backend/studyrooms.db`, and start the server again.
-
-**Frontend**
-
-Fill this in by the end of Day 2.
-
-```bash
-cd frontend
-```
-
-## 6. Proof of work
-
-Save a screenshot of /docs or your app as `screenshot.png` in this branch. It shows here:
-
-![Our app](screenshot.png)

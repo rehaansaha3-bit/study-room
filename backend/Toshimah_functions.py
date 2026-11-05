@@ -18,9 +18,7 @@ class rooms(Base):
     capacity = Column(Integer)
     has_projector = Column(Integer, default=0)
     is_open = Column(Integer, default=1)
-    
-    
-   
+
 
 class bookings(Base):
     __tablename__="bookings"
@@ -43,7 +41,6 @@ Base.metadata.create_all(engine)
 def student_bookings(roll_no):
     session = Session(engine)
     
-    
     if not roll_no.isdigit():
         session.close()
         raise HTTPException(status_code=400, detail="Roll number must be a number")
@@ -53,20 +50,16 @@ def student_bookings(roll_no):
     student_booking_records = session.query(bookings).filter(
         bookings.roll_no == roll_no,
         bookings.status != "cancelled",
-        bookings.booking_date >= datetime.now()
+        bookings.booking_date >= datetime.now().date()
     ).all()
 
-    if not student_booking_records:
-        session.close()
-        raise HTTPException(status_code=404, detail="No bookings found for this student")
-    
     response = []
     for booking in student_booking_records:
         room = session.get(rooms, booking.room_id)
         response.append({
             "booking_id": booking.id,
             "room_name": room.name if room else None,
-            "booking_date": booking.booking_date, 
+            "booking_date": booking.booking_date.date(),
             "start_hour": booking.start_hour,
             "group_size": booking.group_size
         })
@@ -95,14 +88,9 @@ def cancel_booking(booking_id):
         raise HTTPException(status_code=400, detail="Cannot cancel a checked-in booking")
     
     booking.status = "cancelled"
-    
-    room = session.get(rooms, booking.room_id)
-    if room:
-        room.is_open = 1
-        
     session.commit()
     session.close()
-    return {"detail": "Booking cancelled successfully"} 
+    return {"message": "Booking cancelled successfully"}
 
 # E9
 # Check in to a booking.
@@ -127,14 +115,9 @@ def check_in_booking(booking_id):
         raise HTTPException(status_code=400, detail="Can only check in on the booking date")
     
     booking.status = "checked_in"
-    
-    room = session.get(rooms, booking.room_id)
-    if room:
-        room.is_open = 0
-        
     session.commit()
     session.close()
-    return {"detail": "Checked in successfully"} 
+    return {"message": "Checked in successfully"}
 
 # E10
 # get all bookings

@@ -18,9 +18,7 @@ class rooms(Base):
     capacity = Column(Integer)
     has_projector = Column(Integer, default=0)
     is_open = Column(Integer, default=1)
-    
-    
-   
+
 
 class bookings(Base):
     __tablename__="bookings"
@@ -39,9 +37,16 @@ Base.metadata.create_all(engine)
 
 
 # E1: Get all the rooms.
-def get_all_rooms():
+def get_all_rooms(min_capacity=None, has_projector=None):
     session = Session(engine)
-    rooms_list = session.query(rooms).all()
+    query = session.query(rooms)
+
+    if min_capacity is not None:
+        query = query.filter(rooms.capacity >= min_capacity)
+    if has_projector is not None:
+        query = query.filter(rooms.has_projector == has_projector)
+
+    rooms_list = query.all()
     response = []
     for room in rooms_list:
         temp_room = {
@@ -64,9 +69,10 @@ def get_room_by_id(room_id):
             session.close()
             raise HTTPException(status_code=400, detail="Room ID must be a number")
         
-    room = session.get(rooms, room_id)
+    room = session.get(rooms, int(room_id))
     
     if not room:
+        session.close()
         raise HTTPException(status_code=404, detail="Room not found")
     response = {
         "room_id": room.id,
@@ -82,9 +88,6 @@ def get_room_by_id(room_id):
 # E3: Add a new room.
 def add_room(name, building, capacity, has_projector):
     session = Session(engine)
-    
-    
-  
     new_room = rooms(name=name, building=building, capacity=capacity, has_projector=has_projector)
     session.add(new_room)
     session.commit()
@@ -98,4 +101,3 @@ def add_room(name, building, capacity, has_projector):
     }
     session.close()
     return response
-
