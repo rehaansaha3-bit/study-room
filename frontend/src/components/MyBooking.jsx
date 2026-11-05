@@ -14,7 +14,7 @@ function MyBooking({ apiUrl, refresh, onChange }) {
 
   // E7: get the student's bookings
   function getBookings() {
-    fetch(apiUrl + "/student-bookings/" + encodeURIComponent(rollNumber))
+    fetch(apiUrl + "/student-bookings/" + rollNumber)
       .then((response) => response.json())
       .then((data) => {
         if (data.detail) {
