@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-function RoomItem({ room, toggleRoom }) {
+function RoomItem({ room, changeRoomStatus }) {
     return (
         <div>
             <hr />
@@ -11,7 +11,7 @@ function RoomItem({ room, toggleRoom }) {
             <p>Projector: {room.has_projector == 1 ? "Yes" : "No"}</p>
             <p>Status: {room.is_open == 1 ? "Open" : "Closed"}</p>
 
-            <button onClick={() => toggleRoom(room)}>
+            <button onClick={() => changeRoomStatus(room)}>
                 {room.is_open == 1 ? "Close Room" : "Open Room"}
             </button>
         </div>
@@ -19,7 +19,7 @@ function RoomItem({ room, toggleRoom }) {
 }
 
 
-function ManageRooms({ rooms, message, addRoom, toggleRoom }) {
+function ManageRooms({ rooms, message, addRoom, changeRoomStatus }) {
 
     const [name, setName] = useState("");
     const [building, setBuilding] = useState("");
