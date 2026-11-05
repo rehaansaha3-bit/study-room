@@ -47,25 +47,27 @@ def free_hours(room_id: int):
     return Rehaan_functions.get_free_hours(room_id, date.today())
 
 # E6 book room
+# E6 book room
 @app.post("/rooms/{room_id}/book")
 def book_room_endpoint(
-    room_id: int, 
-    booking_date: datetime,  # FastAPI automatically converts the string to a datetime object!
-    start_hour: int, 
-    roll_no: str, 
+    room_id: int,
+    booking_date: datetime,
+    roll_no: str,
     group_size: int
 ):
+    d = booking_date
+
     if not roll_no.isdigit():
         raise HTTPException(status_code=400, detail="Roll number must be a number")
-    
-    if start_hour < 8 or start_hour > 19:
+
+    if d.hour < 8 or d.hour > 19:
         raise HTTPException(status_code=400, detail="Start hour must be between 8 and 19")
-    
+
     return Rehaan_functions.book_room(
-        room_id, 
-        booking_date.date(),  # Extracts just the date (e.g., 2026-11-06)
-        start_hour, 
-        roll_no, 
+        room_id,
+        d.date(),
+        d.hour,
+        roll_no,
         group_size
     )
 
