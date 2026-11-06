@@ -30,11 +30,7 @@ function ManageRooms({ apiUrl, refresh, onChange }) {
   function handleAdd() {
     setMessage("");
 
-    let url = apiUrl + "/rooms";
-    url = url + "?name=" + encodeURIComponent(name);
-    url = url + "&building=" + encodeURIComponent(building);
-    url = url + "&capacity=" + capacity;
-    url = url + "&has_projector=" + projector;
+    const url = apiUrl + "/rooms?name=" + name + "&building=" + building + "&capacity=" + capacity + "&has_projector=" + projector;
 
     fetch(url, { method: "POST" })
       .then((response) => response.json())
