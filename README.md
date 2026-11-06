@@ -30,15 +30,15 @@ Status: ✅ done · 🟡 in progress · ⬜ not started
 
 | # | Method + path | Built | Rules checked in /docs | Connected to React | Who |
 |---|---|---|---|---|---|
-| E1 |  | ✅ | ✅ | ✅ | Harsita |
-| E2 |  | ✅ | ✅ | ✅ | Harsita |
-| E3 |  | ✅ | ✅ | ✅ | Harsita |
-| E4 |  | ✅ | ✅ | ✅ | Rehaan |
-| E5 |  | ✅ | ✅ | ✅ | Rehaan |
-| E6 |  | ✅ | ✅ | ✅ | Rehaan |
-| E7 |  | ✅ | ✅ | ✅ | Toshimah |
-| E8 |  | ✅ | ✅ | ✅ | Toshimah |
-| E9 |  | ✅ | ✅ | ✅ | Toshimah |
+| E1 | GET/rooms | ✅ | ✅ | ✅ | Harsita |
+| E2 | GET/rooms/{room_id} | ✅ | ✅ | ✅ | Harsita |
+| E3 | POST/rooms | ✅ | ✅ | ✅ | Harsita |
+| E4 | PATCH/rooms/room_id | ✅ | ✅ | ✅ | Rehaan |
+| E5 | GET/rooms/{room_id}/free-hours| ✅ | ✅ | ✅ | Rehaan |
+| E6 | POST/rooms/{room_id}/book | ✅ | ✅ | ✅ | Rehaan |
+| E7 | GET/student-bookings/{roll_no} | ✅ | ✅ | ✅ | Toshimah |
+| E8 | PATCH/cancel-booking/{booking_id} | ✅ | ✅ | ✅ | Toshimah |
+| E9 | PATCH/check-in-booking/{booking_id} | ✅ | ✅ | ✅ | Toshimah |
 
 ## 3. Frontend tracker
 
