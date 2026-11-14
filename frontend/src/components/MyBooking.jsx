@@ -7,14 +7,14 @@ function getErrorMessage(data) {
   return "Please check what you typed.";
 }
 
-function MyBooking({ apiUrl, refresh, onChange }) {
+function MyBooking({ apiUrl, token, refresh, onChange }) {
   const [bookings, setBookings] = useState([]);
   const [rollNumber, setRollNumber] = useState("");
   const [error, setError] = useState("");
 
   // E7: get the student's bookings
   function getBookings() {
-    fetch(apiUrl + "/student-bookings/" + encodeURIComponent(rollNumber))
+    fetch(apiUrl + "/student-bookings/" + rollNumber, { headers: { token: token } })
       .then((response) => response.json())
       .then((data) => {
         if (data.detail) {
@@ -42,7 +42,10 @@ function MyBooking({ apiUrl, refresh, onChange }) {
   function handleCheckIn(bookingId) {
     setError("");
 
-    fetch(apiUrl + "/check-in-booking/" + bookingId, { method: "PATCH" })
+    fetch(apiUrl + "/check-in-booking/" + bookingId, {
+      method: "PATCH",
+      headers: { token: token },
+    })
       .then((response) => response.json())
       .then((data) => {
         if (data.detail) {
@@ -57,7 +60,10 @@ function MyBooking({ apiUrl, refresh, onChange }) {
   function handleCancel(bookingId) {
     setError("");
 
-    fetch(apiUrl + "/cancel-booking/" + bookingId, { method: "PATCH" })
+    fetch(apiUrl + "/cancel-booking/" + bookingId, {
+      method: "PATCH",
+      headers: { token: token },
+    })
       .then((response) => response.json())
       .then((data) => {
         if (data.detail) {
@@ -88,12 +94,8 @@ function MyBooking({ apiUrl, refresh, onChange }) {
             <p>Date: {booking.booking_date}</p>
             <p>Time: {booking.start_hour}:00</p>
 
-            <button onClick={() => handleCheckIn(booking.booking_id)}>
-              Check In
-            </button>
-            <button onClick={() => handleCancel(booking.booking_id)}>
-              Cancel
-            </button>
+            <button onClick={() => handleCheckIn(booking.booking_id)}>Check In</button>
+            <button onClick={() => handleCancel(booking.booking_id)}>Cancel</button>
           </li>
         ))}
       </ul>

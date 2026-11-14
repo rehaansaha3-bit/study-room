@@ -4,10 +4,14 @@ function getErrorMessage(data) {
   if (typeof data.detail === "string") {
     return data.detail;
   }
+  // Pydantic errors (422) come as a list
+  if (Array.isArray(data.detail) && data.detail.length > 0) {
+    return data.detail[0].msg.replace("Value error, ", "");
+  }
   return "Please check what you typed.";
 }
 
-function ManageRooms({ apiUrl, refresh, onChange }) {
+function ManageRooms({ apiUrl, token, refresh, onChange }) {
   const [rooms, setRooms] = useState([]);
   const [name, setName] = useState("");
   const [building, setBuilding] = useState("");
@@ -17,7 +21,7 @@ function ManageRooms({ apiUrl, refresh, onChange }) {
 
   // E1: load all rooms
   useEffect(() => {
-    fetch(apiUrl + "/rooms")
+    fetch(apiUrl + "/rooms", { headers: { token: token } })
       .then((response) => response.json())
       .then((data) => {
         if (!data.detail) {
@@ -26,17 +30,20 @@ function ManageRooms({ apiUrl, refresh, onChange }) {
       });
   }, [refresh]);
 
-  // E3: add a new room
+  // E3: add a new room (RoomCreate expects a JSON body)
   function handleAdd() {
     setMessage("");
 
-    let url = apiUrl + "/rooms";
-    url = url + "?name=" + encodeURIComponent(name);
-    url = url + "&building=" + encodeURIComponent(building);
-    url = url + "&capacity=" + capacity;
-    url = url + "&has_projector=" + projector;
-
-    fetch(url, { method: "POST" })
+    fetch(apiUrl + "/rooms", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", token: token },
+      body: JSON.stringify({
+        name: name,
+        building: building,
+        capacity: Number(capacity),
+        has_projector: Number(projector),
+      }),
+    })
       .then((response) => response.json())
       .then((data) => {
         if (data.detail) {
@@ -52,12 +59,15 @@ function ManageRooms({ apiUrl, refresh, onChange }) {
       });
   }
 
-  // E4: open or close a room
+  // E4: open or close a room (is_open is a query parameter)
   function handleStatus(room) {
     setMessage("");
     const newStatus = room.is_open ? 0 : 1;
 
-    fetch(apiUrl + "/rooms/" + room.room_id + "?is_open=" + newStatus, { method: "PATCH" })
+    fetch(apiUrl + "/rooms/" + room.room_id + "?is_open=" + newStatus, {
+      method: "PATCH",
+      headers: { token: token },
+    })
       .then((response) => response.json())
       .then((data) => {
         if (data.detail) {
@@ -72,11 +82,7 @@ function ManageRooms({ apiUrl, refresh, onChange }) {
     <section>
       <h2>Manage Rooms</h2>
 
-      <input
-        placeholder="Room name"
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-      />
+      <input placeholder="Room name" value={name} onChange={(e) => setName(e.target.value)} />
       <input
         placeholder="Building"
         value={building}
@@ -100,9 +106,7 @@ function ManageRooms({ apiUrl, refresh, onChange }) {
         {rooms.map((room) => (
           <li key={room.room_id}>
             {room.name} - {room.is_open ? "Open" : "Closed"}
-            <button onClick={() => handleStatus(room)}>
-              {room.is_open ? "Close" : "Open"}
-            </button>
+            <button onClick={() => handleStatus(room)}>{room.is_open ? "Close" : "Open"}</button>
           </li>
         ))}
       </ul>

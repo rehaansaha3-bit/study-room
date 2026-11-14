@@ -3,7 +3,6 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import RoomItem from "./RoomItem";
 
-// Turns a date into text like 2026-11-05
 function formatDate(d) {
   // The date is null when someone clears the box
   if (d === null) {
@@ -23,31 +22,34 @@ function formatDate(d) {
   return d.getFullYear() + "-" + month + "-" + day;
 }
 
-function Rooms({ apiUrl, refresh, onChange }) {
+function Rooms({ apiUrl, token, refresh, onChange }) {
   // Today, and the last date a student can book (7 days from today)
   const today = new Date();
   const lastDate = new Date();
   lastDate.setDate(lastDate.getDate() + 7);
 
   const [rooms, setRooms] = useState([]);
-  const [minCapacity, setMinCapacity] = useState("");
   const [projectorOnly, setProjectorOnly] = useState(false);
   const [startDate, setStartDate] = useState(new Date());
   const [selectedRoomId, setSelectedRoomId] = useState(null);
 
   // E1: load all rooms
   useEffect(() => {
-    fetch(apiUrl + "/rooms")
+    fetch(apiUrl + "/rooms", { headers: { token: token } })
       .then((response) => response.json())
-      .then((data) => setRooms(data));
+      .then((data) => {
+        if (!data.detail) {
+          setRooms(data);
+        }
+      });
   }, [refresh]);
 
   // E2: get the room that was clicked
   function handleSelect(roomId) {
-    fetch(apiUrl + "/rooms/" + roomId)
-      .then((response) => response.json())
-      .then(() => setSelectedRoomId(roomId));
-  }
+  fetch(apiUrl + "/rooms/" + roomId, { headers: { token: token } })
+    .then((response) => response.json())
+    .then(() => setSelectedRoomId(roomId));
+}
 
   const filteredRooms = rooms.filter((room) => {
     if (projectorOnly && !room.has_projector) {
@@ -59,7 +61,6 @@ function Rooms({ apiUrl, refresh, onChange }) {
   return (
     <section>
       <h2>Rooms</h2>
-
 
       <label>
         <input
@@ -84,6 +85,7 @@ function Rooms({ apiUrl, refresh, onChange }) {
             key={room.room_id}
             room={room}
             apiUrl={apiUrl}
+            token={token}
             date={formatDate(startDate)}
             isSelected={selectedRoomId === room.room_id}
             onSelect={handleSelect}

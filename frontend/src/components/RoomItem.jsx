@@ -1,6 +1,17 @@
 import { useEffect, useState } from "react";
 
-function RoomItem({ room, apiUrl, date, isSelected, onSelect, refresh, onChange }) {
+function getErrorMessage(data) {
+  if (typeof data.detail === "string") {
+    return data.detail;
+  }
+  // Pydantic errors (422) come as a list
+  if (Array.isArray(data.detail) && data.detail.length > 0) {
+    return data.detail[0].msg.replace("Value error, ", "");
+  }
+  return "Please check what you typed.";
+}
+
+function RoomItem({ room, apiUrl, token, date, isSelected, onSelect, refresh, onChange }) {
   const [freeHours, setFreeHours] = useState([]);
   const [rollNo, setRollNo] = useState("");
   const [groupSize, setGroupSize] = useState("");
@@ -12,39 +23,50 @@ function RoomItem({ room, apiUrl, date, isSelected, onSelect, refresh, onChange 
       return;
     }
 
-    fetch(apiUrl + "/rooms/" + room.room_id + "/free-hours?booking_date=" + date)
+    fetch(apiUrl + "/rooms/" + room.room_id + "/free-hours?booking_date=" + date, {
+      headers: { token: token },
+    })
       .then((response) => response.json())
-      .then((data) => setFreeHours(data));
+      .then((data) => {
+        if (data.detail) {
+          setFreeHours([]);
+          setError(getErrorMessage(data));
+        } else {
+          setFreeHours(data);
+        }
+      });
   }, [isSelected, date, refresh]);
 
   // E6: book one free hour
-function handleBook(hour) {
-  setError("");
+  function handleBook(hour) {
+    setError("");
 
-  // The backend reads the hour from the date, like 2026-11-05T09:00:00
-  let hourText = hour;
-  if (hour < 10) {
-    hourText = "0" + hour;
+    // The backend reads the hour from the date, like 2026-11-05T09:00:00
+    let hourText = hour;
+    if (hour < 10) {
+      hourText = "0" + hour;
+    }
+    const bookingDate = date + "T" + hourText + ":00:00";
+
+    // BookingCreate (Pydantic) expects a JSON body
+    fetch(apiUrl + "/rooms/" + room.room_id + "/book", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", token: token },
+      body: JSON.stringify({
+        booking_date: bookingDate,
+        roll_no: rollNo,
+        group_size: Number(groupSize),
+      }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.detail) {
+          setError(getErrorMessage(data));
+        } else {
+          onChange();
+        }
+      });
   }
-  const bookingDate = date + "T" + hourText + ":00:00";
-
-  let url = apiUrl + "/rooms/" + room.room_id + "/book";
-  url = url + "?booking_date=" + bookingDate;
-  url = url + "&roll_no=" + rollNo;
-  url = url + "&group_size=" + groupSize;
-
-  fetch(url, { method: "POST" })
-    .then((response) => response.json())
-    .then((data) => {
-      if (typeof data.detail === "string") {
-        setError(data.detail);
-      } else if (data.detail) {
-        setError("Please check what you typed.");
-      } else {
-        onChange();
-      }
-    });
-}
 
   return (
     <li>

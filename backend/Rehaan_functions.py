@@ -1,10 +1,11 @@
-from contextlib import closing
+
 
 from sqlalchemy import Integer, String, Column, create_engine,ForeignKey, DateTime
 from sqlalchemy.orm import Session, declarative_base;
 from datetime import date, datetime;
 from fastapi import HTTPException;
-import Harsita_functions 
+from pydantic import BaseModel, Field, model_validator, field_validator
+
 
 DB_PATH = "study_room.db"
 
@@ -34,6 +35,51 @@ class bookings(Base):
     group_size = Column(Integer)
     status = Column(String)
     booked_on = Column(DateTime, default= date.today())
+    
+class Users(Base):
+    __tablename__ = "Users"
+    user_id = Column(Integer, primary_key= True)
+    role = Column(String, default = "student")
+    user_name = Column(String)
+    password= Column(String)
+
+    
+    
+    
+#-------------pydantic--------------------
+
+def clean_text(value):
+    value = value.strip()
+    if value == "":
+        raise ValueError("cannot be blank")
+    return value
+
+
+# Used in E6 (book a room)
+class BookingCreate(BaseModel):
+    booking_date: datetime                      # date + start hour, e.g. "2026-11-15T10:00"
+    roll_no: str = Field(min_length=1)
+    group_size: int = Field(ge=1, le=12)
+
+    @field_validator("roll_no")
+    @classmethod
+    def roll_no_is_number(cls, value):
+        value = clean_text(value)
+        if not value.isdigit():
+            raise ValueError("Roll number must be a number")
+        return value
+
+    @field_validator("booking_date")
+    @classmethod
+    def check_booking_date(cls, value):
+        days_away = (value.date() - datetime.now().date()).days
+        if days_away < 0:
+            raise ValueError("You can't book a date in the past")
+        if days_away > 7:
+            raise ValueError("You can only book up to 7 days from today")
+        if value.hour < 8 or value.hour > 19:
+            raise ValueError("Start hour must be between 8 and 19")
+        return value
 
 
 Base.metadata.create_all(engine)
@@ -50,7 +96,7 @@ def open_close_room(room_id, is_open):
         raise HTTPException(status_code=404, detail="Room not found")
 
     # closing a room that has future bookings should not be allowed.
-    if not is_open:
+    if not is_open: 
         future_bookings = session.query(bookings).filter(
             bookings.room_id == room_id,
             bookings.booking_date >= datetime.now().date(),

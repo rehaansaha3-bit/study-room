@@ -2,6 +2,8 @@ from sqlalchemy import Integer, String, Column, create_engine,ForeignKey, DateTi
 from sqlalchemy.orm import Session, declarative_base;
 from datetime import datetime;
 from fastapi import HTTPException;
+from pydantic import BaseModel, Field, model_validator, field_validator
+
 
 DB_PATH = "study_room.db"
 
@@ -31,9 +33,36 @@ class bookings(Base):
     group_size = Column(Integer)
     status = Column(String)
     booked_on = Column(DateTime, default=datetime.now)
+    
+class Users(Base):
+    __tablename__ = "Users"
+    user_id = Column(Integer, primary_key= True)
+    role = Column(String, default = "student")
+    user_name = Column(String)
+    password= Column(String)
 
 
 Base.metadata.create_all(engine)
+
+#--------------pydantic----------------
+
+def clean_text(value):
+    value = value.strip()
+    if value == "":
+        raise ValueError("cannot be blank")
+    return value
+
+# Used in E3 (add a room)
+class RoomCreate(BaseModel):
+    name: str = Field(min_length=1)
+    building: str = Field(min_length=1)
+    capacity: int = Field(ge=2, le=12)
+    has_projector: int = Field(ge=0, le=1)      # 0 = no, 1 = yes
+
+    @field_validator("name", "building")
+    @classmethod
+    def not_blank(cls, value):
+        return clean_text(value)
 
 
 # E1: Get all the rooms.
@@ -65,25 +94,23 @@ def get_all_rooms(min_capacity=None, has_projector=None):
 # E2: Get one room by id.
 def get_room_by_id(room_id):
     session = Session(engine)
-    if room_id.isdigit() == False:
-            session.close()
-            raise HTTPException(status_code=400, detail="Room ID must be a number")
-        
-    room = session.get(rooms, int(room_id))
-    
-    if not room:
+    room = session.get(rooms, room_id)
+
+    if room is None:
         session.close()
         raise HTTPException(status_code=404, detail="Room not found")
+
     response = {
         "room_id": room.id,
         "name": room.name,
         "building": room.building,
         "capacity": room.capacity,
         "has_projector": room.has_projector,
-        "is_open": room.is_open
+        "is_open": room.is_open,
     }
     session.close()
     return response
+
 
 # E3: Add a new room.
 def add_room(name, building, capacity, has_projector):
